@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Teknikutmaningen</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #101827;
+            color: white;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 15px 0 5px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            margin: 0 15px 15px;
+            color: #b9c7dc;
+        }
+
+        #game {
+            position: relative;
+            width: min(92vw, 420px);
+            height: min(120vw, 600px);
+            margin: auto;
+            background: #172235;
+            border: 4px solid white;
+            border-radius: 15px;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #player {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            background: #00d9ff;
+            border-radius: 10px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 25px;
+
+            left: 20px;
+            bottom: 20px;
+
+            transition: left 0.05s, top 0.05s;
+        }
+
+        .goal {
+            position: absolute;
+
+            width: 60px;
+            height: 60px;
+
+            background: #2ecc71;
+
+            border-radius: 50%;
+
+            right: 20px;
+            top: 25px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 30px;
+        }
+
+        .obstacle {
+            position: absolute;
+
+            background: #e74c3c;
+
+            border-radius: 8px;
+        }
+
+        #obstacle1 {
+            width: 130px;
+            height: 35px;
+
+            left: 100px;
+            top: 180px;
+        }
+
+        #obstacle2 {
+            width: 40px;
+            height: 150px;
+
+            left: 250px;
+            top: 300px;
+        }
+
+        #message {
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            transform: translate(-50%, -50%);
+
+            background: rgba(0,0,0,0.9);
+
+            padding: 25px;
+
+            border-radius: 15px;
+
+            width: 85%;
+
+            display: none;
+
+            z-index: 10;
+        }
+
+        #message h2 {
+            margin-top: 0;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+
+            padding: 12px 20px;
+
+            font-size: 18px;
+
+            background: #3498db;
+            color: white;
+
+            cursor: pointer;
+
+            margin: 5px;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .controls {
+            margin: 15px auto;
+            width: min(92vw, 420px);
+        }
+
+        .controls button {
+            width: 80px;
+            height: 55px;
+            font-size: 28px;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-around;
+
+            margin: 10px auto;
+
+            width: min(92vw, 420px);
+
+            font-size: 18px;
+        }
+
+        .task {
+            width: min(92vw, 420px);
+
+            margin: 15px auto 30px;
+
+            padding: 15px;
+
+            background: #1e2d44;
+
+            border-radius: 12px;
+
+            text-align: left;
+        }
+
+        .task h2 {
+            margin-top: 0;
+        }
+
+        .task li {
+            margin-bottom: 8px;
+        }
+
+        .code {
+            background: #0b111c;
+
+            padding: 10px;
+
+            border-radius: 8px;
+
+            font-family: monospace;
+
+            color: #7ee787;
+
+            overflow-x: auto;
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+    <h1>🚀 Teknikutmaningen</h1>
+
+    <p class="subtitle">
+        Få roboten 🤖 till målet 🟢 utan att träffa hindren!
+    </p>
+
+
+    <div class="info">
+
+        <div>
+            🏆 Poäng:
+            <strong id="score">0</strong>
+        </div>
+
+        <div>
+            ⚡ Hastighet:
+            <strong id="speedText">10</strong>
+        </div>
+
+    </div>
+
+
+    <div id="game">
+
+        <div id="player">
+            🤖
+        </div>
+
+        <div class="goal">
+            🏁
+        </div>
+
+        <div
+            class="obstacle"
+            id="obstacle1">
+        </div>
+
+        <div
+            class="obstacle"
+            id="obstacle2">
+        </div>
+
+
+        <div id="message">
+
+            <h2 id="messageTitle">
+                🎉 Du klarade banan!
+            </h2>
+
+            <p id="messageText">
+                Bra jobbat!
+            </p>
+
+            <button onclick="restartGame()">
+                Spela igen
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- TOUCH-KONTROLLER -->
+
+    <div class="controls">
+
+        <div>
+            <button onclick="movePlayer('up')">
+                ⬆️
+            </button>
+        </div>
+
+        <div>
+
+            <button onclick="movePlayer('left')">
+                ⬅️
+            </button>
+
+            <button onclick="movePlayer('down')">
+                ⬇️
+            </button>
+
+            <button onclick="movePlayer('right')">
+                ➡️
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- UPPGIFTER -->
+
+    <div class="task">
+
+        <h2>🎯 Uppdrag</h2>
+
+        <ol>
+
+            <li>
+                <strong>Testa spelet.</strong><br>
+                Försök nå det gröna målet.
+            </li>
+
+            <li>
+                <strong>Ändra robotens hastighet.</strong>
+
+                <p>
+                    Leta efter:
+                </p>
+
+                <div class="code">
+                    const speed = 10;
+                </div>
+
+                <p>
+                    Prova exempelvis:
+                </p>
+
+                <div class="code">
+                    const speed = 20;
+                </div>
+
+            </li>
+
+
+            <li>
+                <strong>Byt robotens färg.</strong>
+
+                <p>
+                    Leta efter:
+                </p>
+
+                <div class="code">
+                    background: #00d9ff;
+                </div>
+
+                <p>
+                    Prova en annan färg.
+                </p>
+
+            </li>
+
+
+            <li>
+                <strong>Bonus!</strong><br>
+                Ändra storleken på roboten.
+            </li>
+
+
+            <li>
+                <strong>Superbonus!</strong><br>
+                Försök lägga till ett eget hinder.
+            </li>
+
+        </ol>
+
+    </div>
+
+
+<script>
+
+    // ========================================
+    // ⭐ ÄNDRA DEN HÄR!
+    // ========================================
+
+    const speed = 10;
+
+
+    // ========================================
+    // SPELVARIABLER
+    // ========================================
+
+    const game =
+        document.getElementById("game");
+
+    const player =
+        document.getElementById("player");
+
+    const message =
+        document.getElementById("message");
+
+    const messageTitle =
+        document.getElementById("messageTitle");
+
+    const messageText =
+        document.getElementById("messageText");
+
+    const scoreText =
+        document.getElementById("score");
+
+    const speedText =
+        document.getElementById("speedText");
+
+
+    let playerX = 20;
+    let playerY = 520;
+
+    let score = 0;
+
+    let gameOver = false;
+
+
+    speedText.textContent = speed;
+
+
+    // ========================================
+    // FLYTTA SPELAREN
+    // ========================================
+
+    function movePlayer(direction) {
+
+        if (gameOver) {
+            return;
+        }
+
+
+        if (direction === "left") {
+
+            playerX -= speed;
+
+        }
+
+
+        if (direction === "right") {
+
+            playerX += speed;
+
+        }
+
+
+        if (direction === "up") {
+
+            playerY -= speed;
+
+        }
+
+
+        if (direction === "down") {
+
+            playerY += speed;
+
+        }
+
+
+        // Begränsa till spelplanen
+
+        const maxX =
+            game.clientWidth -
+            player.offsetWidth;
+
+        const maxY =
+            game.clientHeight -
+            player.offsetHeight;
+
+
+        if (playerX < 0) {
+            playerX = 0;
+        }
+
+        if (playerX > maxX) {
+            playerX = maxX;
+        }
+
+        if (playerY < 0) {
+            playerY = 0;
+        }
+
+        if (playerY > maxY) {
+            playerY = maxY;
+        }
+
+
+        player.style.left =
+            playerX + "px";
+
+        player.style.top =
+            playerY + "px";
+
+
+        checkCollision();
+
+    }
+
+
+    // ========================================
+    // TANGENTBORD
+    // ========================================
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key === "ArrowLeft") {
+                movePlayer("left");
+            }
+
+            if (event.key === "ArrowRight") {
+                movePlayer("right");
+            }
+
+            if (event.key === "ArrowUp") {
+                movePlayer("up");
+            }
+
+            if (event.key === "ArrowDown") {
+                movePlayer("down");
+            }
+
+        }
+    );
+
+
+    // ========================================
+    // KOLLISION
+    // ========================================
+
+    function collision(a, b) {
+
+        const aRect =
+            a.getBoundingClientRect();
+
+        const bRect =
+            b.getBoundingClientRect();
+
+
+        return !(
+            aRect.right < bRect.left ||
+            aRect.left > bRect.right ||
+            aRect.bottom < bRect.top ||
+            aRect.top > bRect.bottom
+        );
+
+    }
+
+
+    // ========================================
+    // KONTROLLERA KOLLISION
+    // ========================================
+
+    function checkCollision() {
+
+        const obstacle1 =
+            document.getElementById(
+                "obstacle1"
+            );
+
+        const obstacle2 =
+            document.getElementById(
+                "obstacle2"
+            );
+
+        const goal =
+            document.querySelector(
+                ".goal"
+            );
+
+
+        // Hinder
+
+        if (
+            collision(player, obstacle1) ||
+            collision(player, obstacle2)
+        ) {
+
+            gameOver = true;
+
+            messageTitle.textContent =
+                "💥 Aj då!";
+
+            messageText.textContent =
+                "Du träffade ett hinder.";
+
+            message.style.display =
+                "block";
+
+            return;
+        }
+
+
+        // Mål
+
+        if (
+            collision(player, goal)
+        ) {
+
+            gameOver = true;
+
+            score += 100;
+
+            scoreText.textContent =
+                score;
+
+            messageTitle.textContent =
+                "🎉 Du klarade banan!";
+
+            messageText.textContent =
+                "Du fick " +
+                score +
+                " poäng!";
+
+            message.style.display =
+                "block";
+
+        }
+
+    }
+
+
+    // ========================================
+    // STARTA OM
+    // ========================================
+
+    function restartGame() {
+
+        playerX = 20;
+        playerY = 520;
+
+        score = 0;
+
+        gameOver = false;
+
+        scoreText.textContent =
+            score;
+
+        player.style.left =
+            playerX + "px";
+
+        player.style.top =
+            playerY + "px";
+
+        message.style.display =
+            "none";
+
+    }
+
+
+</script>
+
+</body>
+</html>
